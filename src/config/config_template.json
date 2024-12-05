@@ -1,0 +1,31 @@
+{
+  "service_name": "pathshala",
+  "gcp_route": "pathshala",
+  "database": {
+    "client": "mongodb",
+    "pathshala": {
+      "client": "mongodb",
+      "connection": {
+        "host": "localhost",
+        "port": "27017",
+        "user": "",
+        "password": "",
+        "name": "pathshala"
+      }
+    }
+  },
+  "server": {
+    "port": 3005
+  },
+  "sentry": {
+    "dsn": ""
+  },
+  "services": {
+    "pramaan_external": "service link"
+  },
+  "email": {
+    "user": "",
+    "pass": "",
+    "max_allowed_emails": 0
+  }
+}
