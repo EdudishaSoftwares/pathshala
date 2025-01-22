@@ -7,7 +7,7 @@
 module.exports = {
   apps: [
     {
-      name: '<project_service_name>', // pm2 start App name
+      name: 'pathshala', // pm2 start App name
       script: 'dist/server.js',
       exec_mode: 'cluster', // 'cluster' or 'fork'
       instances: 1, // pm2 instance count

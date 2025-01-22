@@ -1,20 +1,53 @@
-# Getting base image from DockerHub
-FROM node:14.17.0-alpine
+# Base image: Use the latest LTS Node.js version (with Alpine)
+FROM node:18-alpine AS development-build-stage
 
-#Defineing Working Directory
-WORKDIR /home/ubuntu/github_repos/<project_service_name>
+# Set environment variables
+ARG DOCKER_ENV
+ARG GITHUB_TOKEN
+ENV NODE_ENV=${DOCKER_ENV}
 
-# Copying source code to Image in /user/app directory
-COPY . /home/ubuntu/github_repos/<project_service_name>
+# Validate NODE_ENV is provided
+RUN if [ -z "$NODE_ENV" ]; then echo "NODE_ENV not set" && exit 1; fi
+RUN echo "Building for environment: $NODE_ENV"
 
-# Install Git before next command as it need git
+# Define working directory
+WORKDIR /home/ubuntu/github_repos/pathshala
+
+# Copy project files to the container (excluding node_modules and package-lock.json)
+COPY . /home/ubuntu/github_repos/pathshala
+
+# Install PM2 globally
 RUN npm install pm2 -g
 
-# Install git
-RUN apk add git
+# Install git and nginx for any required commands
+RUN apk add --no-cache git nginx
 
-# Exposing TCP Protocol
-EXPOSE 3015
+# Install npm dependencies
+RUN npm install
 
-#Running NPM Start command to run node application
-CMD ["pm2-runtime", "ecosystem.config.js", "--env", "production"]
+# Clone the secrets repository and checkout the specific branch based on DOCKER_ENV
+RUN git clone -b ${NODE_ENV} https://${GITHUB_TOKEN}@github.com/pratik-edu/secrets.git /tmp/config-repo
+
+# Copy the app configuration file to the correct location
+RUN cp /tmp/config-repo/pathshala/config.json /home/ubuntu/github_repos/pathshala/src/config/config.${NODE_ENV}.json
+
+# Create /etc/nginx directory if not already present
+RUN mkdir -p /etc/nginx
+
+# Copy the Nginx configuration file to the correct location
+RUN cp /tmp/config-repo/pathshala/nginx.conf /etc/nginx/nginx.conf
+
+# Clean up temporary files
+RUN rm -rf /tmp/config-repo
+
+# Create logs directory for PM2
+RUN mkdir -p logs
+
+# Build the application - THIS MUST COMPLETE BEFORE PM2 STARTS
+RUN npm run build
+
+# Expose the port your app listens to
+EXPOSE 3007
+
+# Run the app using PM2
+CMD ["pm2-runtime", "ecosystem.config.js", "--env", "${NODE_ENV}"]
