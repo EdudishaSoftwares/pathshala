@@ -28,6 +28,9 @@ RUN npm install
 # Clone the secrets repository and checkout the specific branch based on DOCKER_ENV
 RUN git clone -b ${NODE_ENV} https://${GITHUB_TOKEN}@github.com/pratik-edu/secrets.git /tmp/config-repo
 
+RUN ls -la /home/ubuntu/github_repos/pathshala
+RUN ls -la /home/ubuntu/github_repos/pathshala/src
+RUN ls -la /home/ubuntu/github_repos/pathshala/src/config
 # Copy the app configuration file to the correct location
 RUN cp /tmp/config-repo/pathshala/config.json /home/ubuntu/github_repos/pathshala/src/config/config.${NODE_ENV}.json
 
